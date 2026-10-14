@@ -83,7 +83,6 @@
       -webkit-user-drag: none;
     }
 
-    #gif1  img { width: min(230px, 55vw); aspect-ratio: 1 / 1; }
     #gif2  img { width: min(229px, 60vw); aspect-ratio: 229 / 297; }
     #texto img { width: min(708px, 90vw); }
 
@@ -255,17 +254,12 @@
   <div class="faixa topo" aria-hidden="true"></div>
 
   <main class="stage">
-    <!-- Etapa 1: GIF girando (clique) -->
-    <button class="item" id="gif1" type="button" aria-label="Clique para continuar">
-      <img src="save_your_life.gif" alt="Criança acenando em cima de um quadriciclo vermelho" width="230" height="230" draggable="false">
-    </button>
-
-    <!-- Etapa 2: segundo GIF (clique) -->
+    <!-- Etapa 1: GIF do rosto (clique) -->
     <button class="item" id="gif2" type="button" aria-label="Clique para continuar">
       <img src="gif2.gif" alt="Desenho de um rosto assustado espiando por baixo do cobertor" width="229" height="297" draggable="false">
     </button>
 
-    <!-- Etapa 3: texto (clique abre o player) -->
+    <!-- Etapa 2: texto (clique abre o player) -->
     <button class="item" id="texto" type="button" aria-label="Abrir o player">
       <img src="destroy-your-life.png" alt="Destroy your life" width="708" height="70" draggable="false">
     </button>
@@ -333,7 +327,6 @@
       var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (reduce) { FADE_OUT_MS = FADE_IN_MS = TEXT_OUT_MS = WIN_OUT_MS = 20; }
 
-      var gif1  = document.getElementById('gif1');
       var gif2  = document.getElementById('gif2');
       var texto = document.getElementById('texto');
       var ocupado = false;
@@ -342,8 +335,8 @@
       new Image().src = 'gif2.gif';
       new Image().src = 'destroy-your-life.png';
 
-      // Entrada inicial: o primeiro GIF aparece com fade in
-      setTimeout(function () { gif1.classList.add('visivel'); }, 300);
+      // Entrada inicial: o GIF do rosto aparece com fade in
+      setTimeout(function () { gif2.classList.add('visivel'); }, 300);
 
       function trocar(de, para, msOut, aoMostrar) {
         ocupado = true;
@@ -355,19 +348,13 @@
         }, msOut);
       }
 
-      // Clique 1: GIF girando some -> aparece o segundo GIF
-      gif1.addEventListener('click', function () {
-        if (ocupado) return;
-        trocar(gif1, gif2, FADE_OUT_MS);
-      });
-
-      // Clique 2: segundo GIF some -> aparece o texto
+      // Clique 1: o GIF some -> aparece o texto
       gif2.addEventListener('click', function () {
         if (ocupado) return;
         trocar(gif2, texto, FADE_OUT_MS);
       });
 
-      // Clique 3: o texto some devagar -> abre o player
+      // Clique 2: o texto some devagar -> abre o player
       texto.addEventListener('click', function () {
         if (ocupado) return;
         ocupado = true;
