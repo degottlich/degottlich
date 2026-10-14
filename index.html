@@ -6,6 +6,11 @@
   <title>Página artística</title>
   <meta name="description" content="Uma página artística pessoal.">
   <style>
+    :root {
+      /* Tamanho de 1 pixel do design original na tela atual (mesma escala do fundo "cover") */
+      --s: max(100vw / 1366, 100dvh / 768);
+    }
+
     html, body {
       margin: 0;
       height: 100%;
@@ -23,16 +28,29 @@
       overflow: hidden;
     }
 
-    /* GIF no meio da página */
+    /* Faixas ornamentadas sempre coladas no topo e na base, em qualquer tela */
+    .faixa {
+      position: fixed;
+      left: 0;
+      right: 0;
+      height: calc(var(--s) * 34);
+      background-color: #000;
+      background-image: url("desing_site.png");
+      background-size: calc(var(--s) * 1366) auto;
+      background-repeat: no-repeat;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .faixa.topo  { top: 0;    background-position: center top; }
+    .faixa.base  { bottom: 0; background-position: center bottom; }
+
+    /* GIF no meio da página, sem borda */
     .gif {
       display: block;
-      width: min(300px, 70vw);
+      width: min(230px, 55vw);
       height: auto;
       aspect-ratio: 1 / 1;
-      border: 1px solid rgba(226, 170, 80, 0.55);
-      box-shadow:
-        0 0 24px rgba(214, 110, 40, 0.35),
-        0 0 80px rgba(214, 110, 40, 0.15);
+      border: 0;
       opacity: 0;
       animation: aparecer 1.6s ease-out 0.3s forwards;
     }
@@ -48,8 +66,10 @@
   </style>
 </head>
 <body>
+  <div class="faixa topo" aria-hidden="true"></div>
   <main class="stage">
-    <img class="gif" src="save_your_life.gif" alt="Criança acenando em cima de um quadriciclo vermelho" width="300" height="300">
+    <img class="gif" src="save_your_life.gif" alt="Criança acenando em cima de um quadriciclo vermelho" width="230" height="230">
   </main>
+  <div class="faixa base" aria-hidden="true"></div>
 </body>
 </html>
