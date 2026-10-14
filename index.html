@@ -3,12 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>degottlich</title>
+  <title>Página artística</title>
   <meta name="description" content="Uma página artística pessoal.">
   <style>
     :root {
       /* Tamanho de 1 pixel do design original na tela atual (mesma escala do fundo "cover") */
       --s: max(100vw / 1366, 100dvh / 768);
+      --fade-out: 0.7s;
+      --fade-in: 0.9s;
     }
 
     html, body {
@@ -21,9 +23,8 @@
     .stage {
       min-height: 100vh;
       min-height: 100dvh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: grid;
+      place-items: center;
       background: #000 url("desing_site.png") center / cover no-repeat;
       overflow: hidden;
     }
@@ -41,35 +42,128 @@
       pointer-events: none;
       z-index: 2;
     }
-    .faixa.topo  { top: 0;    background-position: center top; }
-    .faixa.base  { bottom: 0; background-position: center bottom; }
+    .faixa.topo { top: 0;    background-position: center top; }
+    .faixa.base { bottom: 0; background-position: center bottom; }
 
-    /* GIF no meio da página, sem borda */
-    .gif {
-      display: block;
-      width: min(230px, 55vw);
-      height: auto;
-      aspect-ratio: 1 / 1;
+    /* As 3 etapas ficam empilhadas no mesmo lugar; só uma aparece por vez */
+    .item {
+      grid-area: 1 / 1;
+      margin: 0;
+      padding: 0;
       border: 0;
+      background: none;
+      font: inherit;
+      color: inherit;
       opacity: 0;
-      animation: aparecer 1.6s ease-out 0.3s forwards;
+      visibility: hidden;
+      transition: opacity var(--fade-out) ease, visibility 0s linear var(--fade-out);
+    }
+    .item.visivel {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity var(--fade-in) ease, visibility 0s;
     }
 
-    @keyframes aparecer {
-      from { opacity: 0; transform: scale(0.96); }
-      to   { opacity: 1; transform: scale(1); }
+    button.item {
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
+    button.item:focus-visible {
+      outline: 1px dashed rgba(255, 255, 255, 0.5);
+      outline-offset: 6px;
+    }
+
+    .item img {
+      display: block;
+      height: auto;
+      border: 0;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    #gif1  img { width: min(230px, 55vw); aspect-ratio: 1 / 1; }
+    #gif2  img { width: min(250px, 70vw); }
+    #texto img { width: min(708px, 90vw); }
 
     @media (prefers-reduced-motion: reduce) {
-      .gif { animation: none; opacity: 1; }
+      :root { --fade-out: 0.01s; --fade-in: 0.01s; }
     }
   </style>
+  <noscript>
+    <style>#gif1 { opacity: 1; visibility: visible; }</style>
+  </noscript>
 </head>
 <body>
   <div class="faixa topo" aria-hidden="true"></div>
+
   <main class="stage">
-    <img class="gif" src="save_your_life.gif" alt="Criança acenando em cima de um quadriciclo vermelho" width="230" height="230">
+    <!-- Etapa 1: GIF girando (clique) -->
+    <button class="item" id="gif1" type="button" aria-label="Clique para continuar">
+      <img src="save_your_life.gif" alt="Criança acenando em cima de um quadriciclo vermelho" width="230" height="230" draggable="false">
+    </button>
+
+    <!-- Etapa 2: Loading (clique) -->
+    <button class="item" id="gif2" type="button" aria-label="Clique para continuar">
+      <img id="loadingImg" src="loading.gif" alt="Loading..." width="250" height="100" draggable="false">
+    </button>
+
+    <!-- Etapa 3: texto final (a música toca ao chegar aqui) -->
+    <div class="item" id="texto">
+      <img src="destroy-your-life.png" alt="Destroy your life" width="708" height="70" draggable="false">
+    </div>
   </main>
+
   <div class="faixa base" aria-hidden="true"></div>
+
+  <audio id="musica" src="musica.mp3" preload="auto"></audio>
+
+  <script>
+    (function () {
+      var FADE_OUT_MS = 700;   // igual a --fade-out
+      var FADE_IN_MS  = 900;   // igual a --fade-in
+
+      var gif1   = document.getElementById('gif1');
+      var gif2   = document.getElementById('gif2');
+      var texto  = document.getElementById('texto');
+      var loadingImg = document.getElementById('loadingImg');
+      var musica = document.getElementById('musica');
+      var ocupado = false;
+
+      // Carrega antes as imagens das próximas etapas para não piscar
+      new Image().src = 'loading.gif';
+      new Image().src = 'destroy-your-life.png';
+
+      // Entrada inicial: o primeiro GIF aparece com fade in
+      setTimeout(function () { gif1.classList.add('visivel'); }, 300);
+
+      function trocar(de, para, aoMostrar) {
+        ocupado = true;
+        de.classList.remove('visivel');
+        setTimeout(function () {
+          if (aoMostrar) aoMostrar();
+          para.classList.add('visivel');
+          setTimeout(function () { ocupado = false; }, FADE_IN_MS);
+        }, FADE_OUT_MS);
+      }
+
+      // Clique 1: GIF girando some -> aparece o Loading
+      gif1.addEventListener('click', function () {
+        if (ocupado) return;
+        trocar(gif1, gif2, function () {
+          // reinicia o GIF do Loading do começo quando ele aparece
+          loadingImg.src = 'loading.gif?t=' + Date.now();
+        });
+      });
+
+      // Clique 2: Loading some -> aparece o texto e toca o mp3
+      gif2.addEventListener('click', function () {
+        if (ocupado) return;
+        // o play precisa acontecer dentro do clique, senão o navegador bloqueia o som
+        var p = musica.play();
+        if (p && p.catch) p.catch(function () {});
+        trocar(gif2, texto);
+      });
+    })();
+  </script>
 </body>
 </html>
